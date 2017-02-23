@@ -31,7 +31,7 @@ public class ExceptionsLogsAnalyzer implements LogsAnalyzerService {
     @Override
     public void analyze(JsonArray hits, Handler<AsyncResult<JsonObject>> resultHandler) {
 
-        LOGGER.info("Analyzing Exceptions ...");
+        LOGGER.debug("Analyzing Exceptions ...");
 
         final JsonObject jBugInfo = new JsonObject();
 

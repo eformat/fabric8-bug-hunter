@@ -20,9 +20,11 @@ public class BugHunterVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        LOGGER.info("Starting Bug Hunter with Configuration {}", config());
+        LOGGER.debug("Starting Bug Hunter with Configuration {}", config());
 
-        int huntingIntervalInSeconds = config().getInteger("hunting-interval");
+        int huntingIntervalInSeconds = config().getInteger("HUNTING_INTERVAL_SECONDS", 30);
+        String esBugHunterIndex = config().getString("BUGHUNTER_ES_SAVE_INDEX", "bughunter");
+        String esBugHunterIndexType = config().getString("BUGHUNTER_ES_SAVE_INDEX_TYPE", "bugs");
 
         ElasticSearchService elasticSearchService = ElasticSearchService.createProxy(vertx);
 
@@ -30,7 +32,7 @@ public class BugHunterVerticle extends AbstractVerticle {
 
         vertx.setPeriodic(huntingIntervalInSeconds * 1000, aLong -> {
 
-            String searchQuery = config().getString("hunting-search-query");
+            String searchQuery = config().getString("HUNTING_SEARCH_QUERY");
 
             elasticSearchService.search(searchQuery, result -> {
 
@@ -46,8 +48,8 @@ public class BugHunterVerticle extends AbstractVerticle {
                             JsonArray bugs = bugsData.getJsonArray("bugs");
                             Observable<Object> bugsObservable = Observable.from(bugs);
                             bugsObservable.map(JsonObject.class::cast)
-                                .subscribe(bugData -> elasticSearchService.save("bughunter", "bugs", bugData,
-                                    res -> {
+                                .subscribe(bugData -> elasticSearchService.save(esBugHunterIndex, esBugHunterIndexType,
+                                    bugData, res -> {
                                         if (res.succeeded()) {
                                             LOGGER.info("Saved data:{}", res.result());
                                         } else {

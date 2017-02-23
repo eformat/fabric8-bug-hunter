@@ -27,17 +27,17 @@
     <maven.compiler.target>1.8</maven.compiler.target>
 
     <!-- springboot -->
-    <spring-boot.version>1.4.3.RELEASE</spring-boot.version>
+    <spring-boot.version>1.5.1.RELEASE</spring-boot.version>
 
     <!-- log4j -->
     <log4j-bom.version>2.7</log4j-bom.version>
 
     <!-- fabric8 -->
     <fabric8-maven-plugin.version>3.2.15</fabric8-maven-plugin.version>
-    <fabric8.version>2.2.192</fabric8.version>
+    <fabric8.version>2.2.197</fabric8.version>
 
     <!-- vert.x-->
-    <vertx.version>3.4.0-SNAPSHOT</vertx.version>
+    <vertx.version>3.4.0.Beta1</vertx.version>
     <fabric8.vertx.plugin.version>1.0.4</fabric8.vertx.plugin.version>
 
   </properties>
@@ -53,7 +53,7 @@
       </dependency>
       <dependency>
         <groupId>io.fabric8</groupId>
-        <artifactId>fabric8-project-bom-with-platform-deps</artifactId>
+        <artifactId>fabric8-project-bom</artifactId>
         <version>${fabric8.version}</version>
         <type>pom</type>
         <scope>import</scope>

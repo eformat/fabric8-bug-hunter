@@ -1,0 +1,41 @@
+spec:
+  template:
+    spec:
+      containers:
+      - env:
+        - name: "ELASTIC_SEARCH_SERVICE_NAME"
+          valueFrom:
+            configMapKeyRef:
+              key: "elastic-search-service-name"
+              name: "bug-hunter"
+        - name: "ELASTIC_SEARCH_SERVICE_PORT"
+          valueFrom:
+            configMapKeyRef:
+              key: "elastic-search-service-port"
+              name: "bug-hunter"
+        - name: "ELASTIC_SEARCH_INDEXES"
+          valueFrom:
+            configMapKeyRef:
+              key: "elastic-search-indexes"
+              name: "bug-hunter"
+        - name: "HUNTING_INTERVAL_SECONDS"
+          valueFrom:
+            configMapKeyRef:
+              key: "hunting-interval-seconds"
+              name: "bug-hunter"
+        - name: "HUNTING_SEARCH_QUERY"
+          valueFrom:
+            configMapKeyRef:
+              key: "hunting-search-query"
+              name: "bug-hunter"
+        - name: "BUGHUNTER_ES_SAVE_INDEX"
+          valueFrom:
+            configMapKeyRef:
+              key: "bughunter-es-save-index"
+              name: "bug-hunter"
+        - name: "BUGHUNTER_ES_SAVE_INDEX_TYPE"
+          valueFrom:
+            configMapKeyRef:
+              key: "bughunter-es-save-index-type"
+              name: "bug-hunter"
+

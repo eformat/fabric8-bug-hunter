@@ -2,23 +2,17 @@ package io.fabric8.devops.apps.bughunter;
 
 import io.fabric8.devops.apps.bughunter.service.LogsAnalyzerService;
 import io.fabric8.devops.apps.bughunter.service.impl.ExceptionsLogsAnalyzer;
-import io.fabric8.devops.apps.elasticsearch.helper.service.ElasticSearchOptions;
 import io.fabric8.devops.apps.elasticsearch.helper.service.ElasticSearchService;
 import io.fabric8.devops.apps.elasticsearch.helper.service.impl.ElasticSearchServiceImpl;
+import io.vertx.config.ConfigRetriever;
+import io.vertx.config.ConfigRetrieverOptions;
+import io.vertx.config.ConfigStoreOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.json.JsonObject;
-import io.vertx.ext.configuration.ConfigurationRetriever;
-import io.vertx.ext.configuration.ConfigurationRetrieverOptions;
-import io.vertx.ext.configuration.ConfigurationStoreOptions;
 import io.vertx.serviceproxy.ProxyHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author kameshs
@@ -31,11 +25,6 @@ public class BugHunterMainVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        //Check if its passed via config to the Verticle
-        String k8sNamespace = config().getString("namespace", "default");
-        String configMapName = config().getString("namespace", "bug-hunter");
-        int configMapScanInterval = config().getInteger("configMapScanInterval", 30000);
-
         //Register LogAnalyzer Services ...
         LogsAnalyzerService exceptionAnalyzerService = new ExceptionsLogsAnalyzer(vertx);
         ProxyHelper.registerService(LogsAnalyzerService.class, vertx, exceptionAnalyzerService,
@@ -43,67 +32,42 @@ public class BugHunterMainVerticle extends AbstractVerticle {
 
         LOGGER.debug("Exception Log Analyzer Service available at address {}", LogsAnalyzerService.EXCEPTIONS_EVENT_BUS_ADDR);
 
-        //Register Elastic Search Service
-        final ConfigurationStoreOptions cfgStoreOpts = new ConfigurationStoreOptions()
-            .setType("configmap")
-            .setConfig(new JsonObject()
-                .put("namespace", k8sNamespace)
-                .put("name", configMapName));
+        final ConfigStoreOptions cfgStoreOpts = new ConfigStoreOptions()
+            .setType("env");
 
-        final ConfigurationRetrieverOptions cfgRetrieverOptions = new ConfigurationRetrieverOptions();
+        final ConfigRetrieverOptions cfgRetrieverOptions = new ConfigRetrieverOptions();
         cfgRetrieverOptions
-            .addStore(cfgStoreOpts)
-            .setScanPeriod(configMapScanInterval);
+            .addStore(cfgStoreOpts);
 
-        ConfigurationRetriever configMapRetriever = ConfigurationRetriever.create(vertx, cfgRetrieverOptions);
+        ConfigRetriever configMapRetriever = ConfigRetriever.create(vertx, cfgRetrieverOptions);
 
-        configMapRetriever.getConfiguration(configMap -> {
-            if (configMap.succeeded()) {
+        configMapRetriever.getConfig(bugHunterConfig -> {
+            if (bugHunterConfig.succeeded()) {
 
-                JsonObject configData = configMap.result();
+                JsonObject configData = bugHunterConfig.result();
 
-                int huntingIntervalInSeconds = configData.getInteger("hunting-interval-seconds");
+                LOGGER.debug("Deploying Bug Hunter with ES options {}", configData);
 
-                String searchQuery = configData.getString("hunting-search-query");
+                if (!configData.isEmpty()) {
 
-                String esServiceName = configData.getString("elastic-search-service-name") == null ? "elasticsearch"
-                    : configData.getString("elastic-search-service-name");
+                    ElasticSearchService elasticSearchService = new ElasticSearchServiceImpl(vertx, configData);
+                    ProxyHelper.registerService(ElasticSearchService.class, vertx, elasticSearchService,
+                        ElasticSearchService.ES_SEARCH_BUS_ADDRESS);
 
-                String strIndexes = configData.getString("elastic-search-indexes");
+                    LOGGER.debug("ElasticSearch Service available at address {}", ElasticSearchService.ES_SEARCH_BUS_ADDRESS);
 
-                Objects.requireNonNull(strIndexes, "ConfigMap need to have indexes defined with attribute" +
-                    " 'elastic-search-indexes' ");
+                    final DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(configData);
 
-                List<String> indexes = Stream.of(strIndexes.split(","))
-                    .collect(Collectors.toList());
-
-                int esServicePort = configData.getInteger("elastic-search-service-port");
-
-                ElasticSearchOptions elasticSearchOptions = new ElasticSearchOptions()
-                    .setConfigMap("bug-hunter")
-                    .setKubernetesNamespace("default")
-                    .setSsl(false)
-                    .setPort(esServicePort)
-                    .setHost(esServiceName)
-                    .setIndexes(indexes);
-
-                ElasticSearchService elasticSearchService = new ElasticSearchServiceImpl(vertx, elasticSearchOptions);
-                ProxyHelper.registerService(ElasticSearchService.class, vertx, elasticSearchService,
-                    ElasticSearchService.ES_SEARCH_BUS_ADDRESS);
-
-                LOGGER.debug("ElasticSearch Service available at address {}", ElasticSearchService.ES_SEARCH_BUS_ADDRESS);
-
-                final JsonObject config = new JsonObject();
-                config.put("hunting-search-query", searchQuery);
-                config.put("hunting-interval", huntingIntervalInSeconds);
-
-                final DeploymentOptions deploymentOptions = new DeploymentOptions().setConfig(config);
-
-                vertx.deployVerticle(BugHunterVerticle.class.getName(), deploymentOptions);
+                    vertx.deployVerticle(BugHunterVerticle.class.getName(), deploymentOptions);
+                } else {
+                    LOGGER.warn("Bug Hunter not deployed as no config available, got config {}", configData);
+                }
 
             } else {
-                LOGGER.error("Error while loading ConfigMap {}", config().getString("configMapName"));
+                LOGGER.error("Error while loading Config", bugHunterConfig.cause());
             }
         });
+
+        //TODO handle configmap change
     }
 }

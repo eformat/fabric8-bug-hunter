@@ -1,14 +1,16 @@
 ---
 apiVersion: "v1"
 data:
+  bughunter-es-save-index: "bughunter"
+  bughunter-es-save-index-type: "bugs"
   elastic-search-service-name: "elasticsearch"
   elastic-search-service-port: "9200"
   elastic-search-indexes: "logstash-*"
-  hunting-interval-seconds: "10"
+  hunting-interval-seconds: 30
   hunting-search-query: >-
     kubernetes.namespace_name: default
-    AND kubernetes.labels.group: io.fabric8
-    AND kubernetes.labels.project: simple-calculator
+    AND kubernetes.labels.group: *
+    AND kubernetes.labels.project: *
     AND log: Exception
 kind: "ConfigMap"
 metadata: {}

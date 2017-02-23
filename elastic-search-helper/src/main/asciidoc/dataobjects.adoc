@@ -11,12 +11,8 @@
 [frame="topbot"]
 |===
 ^|Name | Type ^| Description
-|[[configMap]]`configMap`|`String`|-
-|[[configMapScanPeriod]]`configMapScanPeriod`|`Number (long)`|-
 |[[host]]`host`|`String`|-
-|[[indexes]]`indexes`|`Array of String`|-
-|[[indexs]]`indexs`|`Array of String`|-
-|[[kubernetesNamespace]]`kubernetesNamespace`|`String`|-
+|[[indexes]]`indexes`|`String`|-
 |[[port]]`port`|`Number (int)`|-
 |[[ssl]]`ssl`|`Boolean`|-
 |===

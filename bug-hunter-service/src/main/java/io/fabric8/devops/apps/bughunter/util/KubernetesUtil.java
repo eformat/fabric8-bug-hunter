@@ -19,6 +19,14 @@ public class KubernetesUtil {
     public static final String SCM_ISSUE_TRACKER_URL = "SCM_ISSUE_TRACKER_URL";
     public static final String SCM_PROJECT_URL = "SCM_PROJECT_URL";
 
+    /**
+     * 
+     * @param group
+     * @param project
+     * @param version
+     * @param provider
+     * @return
+     */
     public static Map<String, String> deploymentAnnotations(String group, String project,
                                                             String version, String provider) {
 

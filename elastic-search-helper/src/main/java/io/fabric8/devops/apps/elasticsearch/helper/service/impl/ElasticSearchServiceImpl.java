@@ -13,11 +13,9 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.serviceproxy.ServiceException;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -27,8 +25,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 
-    private static final int ESQ1001 = 1001;
-    private static final int ESQ1002 = 1002;
+    //TODO - right error codes with desc
+    private static final int ESQ1001 = 1001; //Error while building request
+    private static final int ESQ1002 = 1002; //Error while doing ES search
 
     private final Vertx vertx;
 
@@ -36,6 +35,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     public ElasticSearchServiceImpl(Vertx vertx) {
         this(vertx, new ElasticSearchOptions());
+    }
+
+    public ElasticSearchServiceImpl(Vertx vertx, JsonObject esConfig) {
+        this(vertx, new ElasticSearchOptions(esConfig));
     }
 
     public ElasticSearchServiceImpl(Vertx vertx, ElasticSearchOptions elasticSearchOptions) {
@@ -51,9 +54,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         String esServiceName = elasticSearchOptions.getHost();
         int esServicePort = elasticSearchOptions.getPort();
 
-        List<String> indexes = elasticSearchOptions.getIndexes();
+        String indexes = elasticSearchOptions.getIndexes();
 
-        LOGGER.info("Searching with q={} on indexes {}", searchQuery, indexes);
+        LOGGER.debug("Searching with q={} on indexes {}", searchQuery, indexes);
 
         HttpClientOptions httpClientOptions = createHttpClientOptions(isSsl, esServiceName, esServicePort);
         query(searchQuery, indexes, resultHandler, httpClientOptions);
@@ -62,7 +65,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     @Override
     public void save(String index, String type, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
 
-        LOGGER.info("Saving Data to Index {}", index);
+        LOGGER.debug("Saving Data to Index {}", index);
 
         boolean isSsl = elasticSearchOptions.isSsl();
         String esServiceName = elasticSearchOptions.getHost();
@@ -138,29 +141,29 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
      * @param resultHandler
      * @param httpClientOptions
      */
-    private void query(String searchQuery, List<String> indexes, Handler<AsyncResult<JsonObject>> resultHandler,
+    private void query(String searchQuery, String indexes, Handler<AsyncResult<JsonObject>> resultHandler,
                        HttpClientOptions httpClientOptions) {
 
-        final String uri = StringUtils.join(indexes, ",") + "/_search";
+        final String uri = indexes + "/_search";
 
-        LOGGER.info("Search URI:{}", uri);
+        LOGGER.debug("Search URI:{}", uri);
 
-        elasticSearchEndpoint(httpClientOptions, httpRequestAsyncResult -> {
+        elasticSearchEndpoint(httpClientOptions, searchResult -> {
 
-            if (httpRequestAsyncResult.succeeded()) {
-                HttpRequest<Buffer> bufferHttpRequest = httpRequestAsyncResult.result();
-                bufferHttpRequest.send(responseAsyncResult -> {
-                    if (responseAsyncResult.succeeded()) {
-                        JsonObject searchResponse = responseAsyncResult.result().bodyAsJsonObject();
+            if (searchResult.succeeded()) {
+                HttpRequest<Buffer> bufferHttpRequest = searchResult.result();
+                bufferHttpRequest.send(response -> {
+                    if (response.succeeded()) {
+                        JsonObject searchResponse = response.result().bodyAsJsonObject();
                         resultHandler.handle(Future.succeededFuture(searchResponse));
                     } else {
-                        LOGGER.error("Error while searching ", responseAsyncResult.cause());
-                        resultHandler.handle(ServiceException.fail(ESQ1002, responseAsyncResult.cause().getMessage()));
+                        LOGGER.error("Error while searching ", response.cause());
+                        resultHandler.handle(ServiceException.fail(ESQ1002, response.cause().getMessage()));
                     }
                 });
             } else {
-                LOGGER.error("Error while building request ", httpRequestAsyncResult.cause());
-                resultHandler.handle(ServiceException.fail(ESQ1001, httpRequestAsyncResult.cause().getMessage()));
+                LOGGER.error("Error while building request ", searchResult.cause());
+                resultHandler.handle(ServiceException.fail(ESQ1001, searchResult.cause().getMessage()));
             }
         }, uri, searchQuery);
     }

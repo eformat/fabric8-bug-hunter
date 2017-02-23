@@ -1,4 +1,0 @@
-moduleName = io.fabric8.devops.apps.bughunter.service.LogsAnalyzerService-module
-moduleVersion = 1.0
-extensionClasses = io.fabric8.devops.apps.bughunter.service.groovy.LogsAnalyzerService_GroovyExtension
-staticExtensionClasses = 

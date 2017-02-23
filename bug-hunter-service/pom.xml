@@ -18,8 +18,9 @@
   <properties>
     <vertx.verticle>io.fabric8.devops.apps.bughunter.BugHunterMainVerticle</vertx.verticle>
     <!-- fabric8 properties-->
-    <fabric8.service.name>${project.artifactId}</fabric8.service.name>
+    <fabric8.service.name>bughunter</fabric8.service.name>
     <commons-lang3.version>3.5</commons-lang3.version>
+    <kubernetes-client.version>2.0.7</kubernetes-client.version>
   </properties>
 
   <dependencies>
@@ -41,8 +42,12 @@
 
     <dependency>
       <groupId>io.vertx</groupId>
-      <artifactId>vertx-configuration-kubernetes-configmap</artifactId>
-      <version>${vertx.version}</version>
+      <artifactId>vertx-config</artifactId>
+    </dependency>
+
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
     </dependency>
 
     <dependency>
@@ -83,24 +88,6 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- supported polyglot langs -->
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-lang-groovy</artifactId>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-lang-kotlin</artifactId>
-      <optional>true</optional>
-    </dependency>
-
-    <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-lang-js</artifactId>
-      <optional>true</optional>
-    </dependency>
 
     <!-- Logging -->
     <dependency>
@@ -196,15 +183,6 @@
             </goals>
           </execution>
         </executions>
-        <configuration>
-          <resources>
-            <labels>
-              <service>
-                <expose>true</expose>
-              </service>
-            </labels>
-          </resources>
-        </configuration>
       </plugin>
       <plugin>
         <groupId>io.fabric8</groupId>
