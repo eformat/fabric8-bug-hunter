@@ -21,7 +21,7 @@ public class BugHitsAnalyzer {
 
     public static Optional<BugInfo> process(JsonObject hit) {
 
-        LOGGER.info("Starting Bug Hits Analyzer");
+        LOGGER.trace("Starting Bug Hits Analyzer");
 
         Optional<BugInfo> optionalBugInfo = Optional.empty();
 
@@ -55,7 +55,7 @@ public class BugHitsAnalyzer {
 
             //Application specific information
 
-            LOGGER.info("App Metadata:{}", appMetadata);
+            LOGGER.trace("App Metadata:{}", appMetadata);
 
             appInfo
                 .setBranch(appMetadata.containsKey(KubernetesUtil.SCM_BRANCH)

@@ -56,7 +56,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
         String indexes = elasticSearchOptions.getIndexes();
 
-        LOGGER.debug("Searching with q={} on indexes {}", searchQuery, indexes);
+        LOGGER.trace("Searching with q={} on indexes {}", searchQuery, indexes);
 
         HttpClientOptions httpClientOptions = createHttpClientOptions(isSsl, esServiceName, esServicePort);
         query(searchQuery, indexes, resultHandler, httpClientOptions);
@@ -65,7 +65,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     @Override
     public void save(String index, String type, JsonObject data, Handler<AsyncResult<JsonObject>> resultHandler) {
 
-        LOGGER.debug("Saving Data to Index {}", index);
+        LOGGER.trace("Saving Data to Index {}", index);
 
         boolean isSsl = elasticSearchOptions.isSsl();
         String esServiceName = elasticSearchOptions.getHost();
@@ -146,7 +146,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
         final String uri = indexes + "/_search";
 
-        LOGGER.debug("Search URI:{}", uri);
+        LOGGER.trace("Search URI:{}", uri);
 
         elasticSearchEndpoint(httpClientOptions, searchResult -> {
 

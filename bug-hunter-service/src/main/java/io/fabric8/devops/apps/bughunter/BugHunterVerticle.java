@@ -20,7 +20,7 @@ public class BugHunterVerticle extends AbstractVerticle {
     @Override
     public void start() throws Exception {
 
-        LOGGER.debug("Starting Bug Hunter with Configuration {}", config());
+        LOGGER.trace("Starting Bug Hunter with Configuration {}", config());
 
         int huntingIntervalInSeconds = config().getInteger("HUNTING_INTERVAL_SECONDS", 30);
         String esBugHunterIndex = config().getString("BUGHUNTER_ES_SAVE_INDEX", "bughunter");
@@ -51,9 +51,9 @@ public class BugHunterVerticle extends AbstractVerticle {
                                 .subscribe(bugData -> elasticSearchService.save(esBugHunterIndex, esBugHunterIndexType,
                                     bugData, res -> {
                                         if (res.succeeded()) {
-                                            LOGGER.info("Saved data:{}", res.result());
+                                            LOGGER.debug("Saved data:{}", res.result());
                                         } else {
-                                            LOGGER.info("Error saving data", res.cause());
+                                            LOGGER.debug("Error saving data", res.cause());
                                         }
                                     }));
                         } else {

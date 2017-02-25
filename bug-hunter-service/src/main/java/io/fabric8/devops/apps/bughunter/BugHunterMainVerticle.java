@@ -46,7 +46,7 @@ public class BugHunterMainVerticle extends AbstractVerticle {
 
                 JsonObject configData = bugHunterConfig.result();
 
-                LOGGER.debug("Deploying Bug Hunter with ES options {}", configData);
+                LOGGER.trace("Deploying Bug Hunter with ES options {}", configData);
 
                 if (!configData.isEmpty()) {
 

@@ -31,7 +31,7 @@ public class ExceptionsLogsAnalyzer implements LogsAnalyzerService {
     @Override
     public void analyze(JsonArray hits, Handler<AsyncResult<JsonObject>> resultHandler) {
 
-        LOGGER.debug("Analyzing Exceptions ...");
+        LOGGER.trace("Analyzing Exceptions ...");
 
         final JsonObject jBugInfo = new JsonObject();
 
@@ -42,7 +42,7 @@ public class ExceptionsLogsAnalyzer implements LogsAnalyzerService {
             .map(BugHitsAnalyzer::process)
             .collect(Collectors.toList());
 
-        LOGGER.info("Collected {} bug hits", bugInfos.size());
+        LOGGER.trace("Collected {} bug hits", bugInfos.size());
 
         bugInfos.stream()
             .filter(o -> o.isPresent())
